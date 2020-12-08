@@ -36,3 +36,12 @@
     transform: rotate(360deg);
   }
 }
+
+.CTAContainer {
+  width: 100%;
+  height: 450px;
+}
+
+.backgroundImg {
+  width: 90%;
+}
