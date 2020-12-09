@@ -1,10 +1,14 @@
 import React from "react";
 import { useCanvas } from "../Hooks";
+import { random } from '../utils/random'
 
-const Canvas = ({draw, height, width}) => {
-  const canvasRef = useCanvas(draw, height, width);
-
-  return <canvas ref={canvasRef} />;
+const Canvas = ({ height, width, mouseX, mouseY, anchor }) => {
+  const canvasRef = useCanvas(height, width, mouseX, mouseY, anchor);
+  return (
+    <React.Fragment>
+      <canvas ref={canvasRef} />
+    </React.Fragment>
+  );
 };
 
 export default Canvas;

@@ -1,5 +1,6 @@
 .App {
   text-align: center;
+  overflow-x: hidden;
 }
 
 .App-logo {
@@ -40,8 +41,29 @@
 .CTAContainer {
   width: 100%;
   height: 450px;
+  cursor: pointer;
+  background-image: url("./img/group-shot-with-logo.svg");
+  background-repeat: no-repeat;
 }
 
 .backgroundImg {
   width: 90%;
+}
+
+.noSelect {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+
+.circularCursor {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #fff;
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+  transition: 0.1s;
+  border-radius: 50%;
+  pointer-events: none;
 }
