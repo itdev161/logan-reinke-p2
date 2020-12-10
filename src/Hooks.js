@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState } from "react";
 import { animated, config, interpolate, useSpring } from "react-spring";
 import { flipCoin, randomFromArray, random } from "./utils/random";
 
@@ -8,7 +8,8 @@ export const useCanvas = (
   mouseX,
   mouseY,
   anchor,
-  fireCannon
+  isHovered,
+  previousAnchor
 ) => {
   const DECAY = 4; // confetti decay in seconds
   const SPREAD = 60; // degrees to spread from the angle of the cannon
@@ -17,71 +18,57 @@ export const useCanvas = (
   const [confettiSprites, setConfettiSprites] = useState({});
   const [confettiSpriteIds, setConfettiSpriteIds] = useState([]);
 
-
-  const getLength = (x0, y0, x1, y1) => {
+  const getLength = (x0, anchorY, currentX, currentY) => {
     // returns the length of a line segment
-    const x = x1 - x0;
-    const y = y1 - y0;
+    const x = currentX - x0;
+    const y = currentY - anchorY;
     return Math.sqrt(x * x + y * y);
   };
 
-  const getDegAngle = (x0, y0, x1, y1) => {
-    const y = y1 - y0;
-    const x = x1 - x0;
+  const getDegAngle = (x0, anchorY, currentX, currentY) => {
+    const y = currentY - anchorY;
+    const x = currentX - x0;
     return Math.atan2(y, x) * (180 / Math.PI);
   };
 
-  // const angle = getDegAngle(x0, y0, x1, y1) + 180;
-  // const amount = 3;
-  // const velocity = length * 10;
-
   const canvasRef = useRef(null);
-  const mouseRefX = useRef(null);
-  const mouseRefY = useRef(null);
-  
   const dpr = window.devicePixelRatio || 1;
 
-  const drawPointer = useCallback(
-    (ctx) => {
-      const radius = 15 * dpr;
-
-      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-      ctx.beginPath();
-      ctx.arc(
-        mouseX,
-        mouseY - ctx.canvas.height / 2,
-        radius,
-        0,
-        2 * Math.PI,
-        false
-      );
-      ctx.fillStyle = "transparent";
-      ctx.fill();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "#ffffff";
-      ctx.stroke();
-    },
-    [mouseY, mouseX]
-  );
-
-  const drawLine = (ctx, x0, y0, x1, y1) => {
-    if (!x0 || !y0) return;
-    ctx.strokeStyle = "#01a0b6";
-    ctx.lineWidth = 2 * dpr;
-
+  const drawPointer = (ctx) => {
+    const radius = 15 * dpr;
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.beginPath();
-    ctx.moveTo(x0, y0);
-    ctx.lineTo(x1, y1);
+    ctx.arc(
+      mouseX,
+      mouseY - ctx.canvas.height / 2,
+      radius,
+      0,
+      2 * Math.PI,
+      false
+    );
+    ctx.fillStyle = "transparent";
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#ffffff";
     ctx.stroke();
   };
 
-  const drawPower = (ctx, x0, y0, length) => {
+  const drawLine = (ctx, x0, anchorY, currentX, currentY) => {
+    if (!currentX || !currentY) return;
+    ctx.strokeStyle = "#01a0b6";
+    ctx.lineWidth = 2 * dpr;
+    ctx.beginPath();
+    ctx.moveTo(x0, anchorY);
+    ctx.lineTo(currentX, currentY);
+    ctx.stroke();
+  };
+
+  const drawPower = (ctx, x0, anchorY, length) => {
     if (!length) return;
     const centerX = x0;
-    const centerY = y0;
+    const centerY = anchorY;
     const radius = (1 * dpr * length) / 20;
     const color = `hsl(187, 99%, ${(20 * length) / 200}%)`;
-
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
     ctx.fillStyle = "transparent";
@@ -91,8 +78,10 @@ export const useCanvas = (
     ctx.stroke();
   };
 
-  const addConfettiParticles = (x, y, amount, angle, velocity) => {
+  const addConfettiParticles = (x, y, angle, prevLength) => {
     let i = 0;
+    const amount = prevLength / 5 + 5;
+    const velocity = prevLength * 10;
     while (i < amount) {
       // sprite
       const r = random(4, 6) * dpr;
@@ -130,6 +119,9 @@ export const useCanvas = (
       springConfettiParticle(id);
       i++;
     }
+    console.log(amount, angle, velocity);
+    console.log({ confettiSpriteIds });
+    console.log({ confettiSprites });
   };
 
   const springConfettiParticle = (id) => {
@@ -176,42 +168,69 @@ export const useCanvas = (
   };
 
   useEffect(() => {
-    
-  })
-
-  useEffect(() => {
     const canvas = canvasRef.current;
-    console.log(canvasRef);
     const ctx = canvas.getContext("2d");
     ctx.scale(dpr, dpr);
     canvas.width = width;
     canvas.height = height;
     let animationFrameId;
 
-    const renderCursor = () => {
+    const render = () => {
+      const anchorX = anchor?.mouseX;
+      const anchorY = anchor?.mouseY - ctx.canvas.height / 2;
+      const currentX = mouseX;
+      const currentY = mouseY - ctx.canvas.height / 2;
+      const prevX = previousAnchor?.mouseX;
+      const prevY = previousAnchor?.mouseY - ctx.canvas.height / 2;
+
+      const length = getLength(anchorX, anchorY, currentX, currentY);
       drawPointer(ctx);
-      animationFrameId = window.requestAnimationFrame(renderCursor);
+      drawLine(ctx, anchorX, anchorY, currentX, currentY);
+      drawPower(ctx, anchorX, anchorY, length);
+      if (previousAnchor && !anchor) {
+        const prevLength = getLength(prevX, prevY, currentX, currentY);
+        const angle = getDegAngle(prevX, prevY, currentX, currentY) + 180;
+        addConfettiParticles(prevX, prevY, angle, prevLength);
+      }
+      
+        drawConfetti(ctx);
+      if (isHovered) {
+        animationFrameId = window.requestAnimationFrame(render);
+      }
     };
 
-    const renderLineAndPower = () => {
-      const x0 = anchor?.x;
-      const y0 = anchor?.y - ctx.canvas.height / 2;
-      const x1 = mouseX;
-      const y1 = mouseY - ctx.canvas.height / 2;
-
-      const length = getLength(x0, y0, x1, y1);
-
-      drawLine(ctx, x0, y0, x1, y1);
-      drawPower(ctx, x0, y0, length);
-    };
-
-    renderCursor();
+    render();
 
     return () => {
       window.cancelAnimationFrame(animationFrameId);
     };
-  }, [mouseX, mouseY]);
+  });
   return canvasRef;
+};
+
+export const useThrottle = (event, fps) => {
+  const [throttle, setThrottle] = useState(false);
+  const renderCount = useRef(0);
+  const SECOND = 1000;
+  const limit = SECOND / fps;
+
+  useEffect(() => {
+    if (renderCount.current < limit) {
+      renderCount.current = renderCount.current + 1;
+    } else if (renderCount.current > limit) {
+      setThrottle(true);
+      const handler = setTimeout(() => {
+        renderCount.current = 0;
+        setThrottle(false);
+      }, limit);
+
+      return () => {
+        clearTimeout(handler);
+      };
+    }
+  }, [event]);
+
+  return throttle;
 };
 
 /** GRAVEYARD
@@ -233,7 +252,7 @@ export const useCanvas = (
     
     resizeCanvas();
       if(anchor !== false){
-          addConfettiParticles(x0, y0, amount, angle, velocity)
+          addConfettiParticles(x0, anchorY, amount, angle, velocity)
           drawConfetti(ctx);
       }
  */

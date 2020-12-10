@@ -2,8 +2,24 @@ import React from "react";
 import { useCanvas } from "../Hooks";
 import { random } from '../utils/random'
 
-const Canvas = ({ height, width, mouseX, mouseY, anchor }) => {
-  const canvasRef = useCanvas(height, width, mouseX, mouseY, anchor);
+const Canvas = ({
+  height,
+  width,
+  mouseX,
+  mouseY,
+  anchor,
+  isHovered,
+  previousAnchor,
+}) => {
+  const canvasRef = useCanvas(
+    height,
+    width,
+    mouseX,
+    mouseY,
+    anchor,
+    isHovered,
+    previousAnchor,
+  );
   return (
     <React.Fragment>
       <canvas ref={canvasRef} />
