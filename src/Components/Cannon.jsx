@@ -7,16 +7,20 @@ import React, {
 } from "react";
 import "../App.css";
 import Canvas from "./Canvas";
-import Background from "../img/group-shot-with-logo.svg";
 import CustomCursor from "./CustomCursor";
 import { useThrottle } from "../Hooks";
+import { animated, config, interpolate, useSpring } from "react-spring";
+import Dot from "./Confetti";
 
 const Cannon = ({ height, width }) => {
   const [isHovered, setHover] = useState(false);
   const [mouseLocation, setMouseLocation] = useState(null);
   const [mouseAnchor, setMouseAnchor] = useState(null);
-  const [previousAnchor, setPreviousAnchor] = useState(null)
+  const [previousAnchor, setPreviousAnchor] = useState(null);
+  const [confettiSprites, setConfettiSprites] = useState([]);
+  const [confettiSpriteIds, setConfettiSpriteIds] = useState([]);
   const throttle = useThrottle(mouseLocation, 60);
+  const currentTime = Date.now();
 
   const handleMouseMove = (e) => {
     if (!isHovered || throttle) return;
@@ -30,7 +34,7 @@ const Cannon = ({ height, width }) => {
 
   const handleMouseUp = (e) => {
     if (!isHovered && !mouseAnchor) return;
-    setPreviousAnchor(mouseAnchor)
+    setPreviousAnchor(mouseAnchor);
     setMouseAnchor(null);
   };
 
@@ -55,6 +59,12 @@ const Cannon = ({ height, width }) => {
         mouseY={mouseLocation?.mouseY}
         anchor={mouseAnchor}
         previousAnchor={previousAnchor}
+        confettiSprites={confettiSprites}
+        setConfettiSprites={setConfettiSprites}
+        setConfettiSpriteIds={setConfettiSpriteIds}
+        confettiSpriteIds={confettiSpriteIds}
+        setPreviousAnchor={setPreviousAnchor}
+        currentTime={currentTime}
       />
     </div>
   );

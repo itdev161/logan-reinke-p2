@@ -1,6 +1,6 @@
 import React from "react";
-import { useCanvas } from "../Hooks";
-import { random } from '../utils/random'
+import { useCanvas, useConfetti } from "../Hooks";
+import { random } from "../utils/random";
 
 const Canvas = ({
   height,
@@ -10,7 +10,28 @@ const Canvas = ({
   anchor,
   isHovered,
   previousAnchor,
+  confettiSprites,
+  setConfettiSprites,
+  setConfettiSpriteIds,
+  confettiSpriteIds,
+  setPreviousAnchor,
+  currentTime,
 }) => {
+  const confettiRef = useConfetti(
+    height,
+    width,
+    mouseX,
+    mouseY,
+    anchor,
+    isHovered,
+    previousAnchor,
+    confettiSprites,
+    setConfettiSprites,
+    setConfettiSpriteIds,
+    confettiSpriteIds,
+    setPreviousAnchor,
+    currentTime
+  );
   const canvasRef = useCanvas(
     height,
     width,
@@ -19,10 +40,19 @@ const Canvas = ({
     anchor,
     isHovered,
     previousAnchor,
+    confettiSprites,
+    setConfettiSprites,
+    setConfettiSpriteIds,
+    confettiSpriteIds,
+    setPreviousAnchor
   );
   return (
     <React.Fragment>
-      <canvas ref={canvasRef} />
+      <canvas style={{ position: "relative" }} ref={canvasRef} />
+      <canvas
+        style={{ position: "absolute", top: "0", left: "0" }}
+        ref={confettiRef}
+      />
     </React.Fragment>
   );
 };

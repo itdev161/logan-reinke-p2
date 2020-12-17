@@ -40,10 +40,12 @@
 
 .CTAContainer {
   width: 100%;
-  height: 450px;
+  height: 537.016px;
   cursor: pointer;
   background-image: url("./img/group-shot-with-logo.svg");
   background-repeat: no-repeat;
+  background-position: bottom;
+  background-size: contain;
 }
 
 .backgroundImg {

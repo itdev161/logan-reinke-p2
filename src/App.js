@@ -9,6 +9,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <Cannon
+        id={"canvas"}
           height={537.016}
           width={1920}
           style={{ cursor: "pointer"}}
